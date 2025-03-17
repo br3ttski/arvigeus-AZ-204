@@ -1,0 +1,44 @@
+## Sign in
+Sign in to Azure CLI either via portal.azure.com > cloud shell, or remotely as follows
+
+NOTE: this doesn't change your CLI context to the VM running the cloud shell, it just allows az commands to remote execute:
+In VS Code open a new Azure Cloud Bash terminal (context is still your PC - issue 'pwd' or 'top')
+
+# Confirm the user:name and tenantId
+az account show
+az account show --output yaml
+az account show --output table
+az account show --query user.name
+az account show --query user.name -o tsv
+az account show --query [name,id,user.name] -o yaml
+az account list --query "[].{subscription_id:id, name:name, isDefault:isDefault}" -o table
+
+# Use the multiselect hash operator {} to return a dictionary instead of an array
+az account show --query "{SubscriptionName: name, SubscriptionId: id, UserName: user.name}" -o table
+
+# Query the default SubscriptionId
+az account list --query "[?isDefault].id" -o tsv
+subscriptionId="$(az account list --query "[?isDefault].id" -o tsv)"
+
+# Define variables
+ResGrp="az-204-labs"
+Location="australiaeast"
+CntReg="az204cntreg"
+
+<or define defaults and not bother referencing them in the commands below>
+az config set defaults.location=australiaeast defaults.group=az-204-labs
+
+# Create resource groups
+az group create --name $ResGrp --location $Location
+az acr create --resource-group $ResGrp --name $CntReg --sku Basic
+
+# Define a docker file in the working directory
+echo FROM mcr.microsoft.com/hello-world > Dockerfile
+
+# Build the container image
+az acr build --image sample/hello-world:v1 --registry $CntReg --file Dockerfile .
+
+# Verify the result
+az acr repository list --name $CntReg --output table
+
+az acr repository show-tags --name $CntReg --repository sample/hello-world --output table
