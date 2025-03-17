@@ -40,5 +40,10 @@ az acr build --image sample/hello-world:v1 --registry $CntReg --file Dockerfile 
 
 # Verify the result
 az acr repository list --name $CntReg --output table
-
 az acr repository show-tags --name $CntReg --repository sample/hello-world --output table
+
+# Inspect the container
+# Depending on what the container does, access the service it offers to confirm operation
+
+# Destroy the container registry
+az acr repository delete --name $CntReg --image sample/hello-world:v1
